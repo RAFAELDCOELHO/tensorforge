@@ -1,4 +1,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Fixtures de paridade: ~157 MB, derivadas do checkpoint do PersonaCore.
+# Regeneráveis com scripts/gen_*_fixture.py — ver scripts/README.md.
 fixtures/*.npz
