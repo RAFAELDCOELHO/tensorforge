@@ -45,8 +45,8 @@ The same protocol on every cycle, all five milestones:
 
 - The math a test checks is written down before the test, including its
   tolerance. Bounds are derived as `sqrt(K)·eps` accumulated over the
-  contraction depth, not loosened until green. Measured errors came in 90x
-  to 400x below the derived bounds.
+  contraction depth, not loosened until green. Measured errors came in one
+  to two orders of magnitude below the derived bounds.
 - TDD with red confirmed first. No implementation before a failing test.
 - Gradcheck (numerical vs analytical) as each new operation lands, not one
   sweep at the end.
@@ -65,7 +65,7 @@ Measured parity, float64 on both sides:
 |---|---|
 | Logits over a full real window | 2.7e-15 |
 | Loss | 0.0 (exact) |
-| Sampled gradients | 3.7e-15 to 9.6e-15 |
+| Sampled gradients | 4.4e-15 to 1.1e-14 |
 | One AdamW step from the real optimizer state | 0.0 to 2.5e-16 |
 | `clip_grad_norm_` on real gradients | ~1e-15 |
 
