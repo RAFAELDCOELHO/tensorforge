@@ -33,6 +33,19 @@ from slim_zip import (  # noqa: E402
     write_schema_only_zip,
 )
 
+LOGITS_FIXTURE = os.path.join(os.path.dirname(__file__), os.pardir,
+                              "fixtures", "slim_logits_public.npz")
+# Same derived logits bound as tests/test_parity.py (sqrt(K)·eps over depth).
+LOGITS_RTOL = 1e-11
+LOGITS_CANARY = 1e-12
+PUBLIC_INPUT = np.array(
+    [8184, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    dtype=np.int64,
+)
+PUBLISHED_SLIM_SHA256 = (
+    "dd3bbb8f772e0b9556a0a31d535a1673d55f0d61d6d669c58a9aab6bb6247e24"
+)
+
 _SLIM = find_slim()
 _SKIP_REAL = pytest.mark.skipif(
     _SLIM is None,
@@ -127,6 +140,61 @@ def test_public_slim_config_matches_this_engine():
                           slim["model"]["wte.weight"])
 
 
+def _relative_error(got, expected):
+    return np.abs(got - expected).max() / np.abs(expected).max()
+
+
+def test_public_slim_logits_match_pytorch_on_committed_fixture():
+    """Forward/logits parity from m1-demo-v1, no 55 MB file, no private ckpt.
+
+    The fixture was frozen by scripts/gen_slim_logits_fixture.py: PyTorch
+    (attn_impl=manual, float64) and this engine, same public slim, same
+    documented 16-token input. The arrays are the measurement; this test
+    recomputes the relative error. It does not invent a number.
+    """
+    assert os.path.exists(LOGITS_FIXTURE), (
+        "fixtures/slim_logits_public.npz must be committed — it is the "
+        "public logits proof, not the 55 MB slim"
+    )
+    ref = np.load(LOGITS_FIXTURE)
+    x, pt, tf = ref["input_x"], ref["ref_logits"], ref["engine_logits"]
+    assert np.array_equal(x, PUBLIC_INPUT)
+    vocab = PUBLISHED_CONFIG["vocab_size"]
+    assert pt.shape == tf.shape == (16, vocab)
+    assert pt.dtype == tf.dtype == np.float64
+    assert np.isfinite(pt).all() and np.isfinite(tf).all()
+    assert str(ref["slim_sha256"]) == PUBLISHED_SLIM_SHA256
+    assert str(ref["git_sha"]).startswith(PUBLISHED_GIT_SHA_PREFIX)
+    assert int(ref["step"]) == PUBLISHED_STEP
+    err = _relative_error(tf, pt)
+    stored = float(ref["measured_rel_error"])
+    print(f"\n[public slim] logits rel. error vs PyTorch: {err:.6e} "
+          f"(stored {stored:.6e}; rtol {LOGITS_RTOL:.0e})")
+    assert err < LOGITS_RTOL, f"erro {err:.3e} — investigar arquitetura, não tolerância"
+    assert err < LOGITS_CANARY, f"erro {err:.3e} above the derived 2.4e-13 canary"
+    assert abs(err - stored) / max(stored, np.finfo(np.float64).tiny) < 1e-12
+    assert np.array_equal(tf.argmax(-1), pt.argmax(-1))
+
+
+def test_public_slim_cannot_support_m4_adamw():
+    """Passing record: the slim has no optimizer, so M4 is not claimed."""
+    assert DROPPED_TRAINING_KEYS.isdisjoint(SLIM_KEYS)
+    assert os.path.exists(LOGITS_FIXTURE)
+    ref = np.load(LOGITS_FIXTURE)
+    assert "optimizer" not in ref.files
+    assert "exp_avg" not in ref.files
+    assert not any(name.startswith("g::") for name in ref.files)
+
+
+@pytest.mark.skip(reason=(
+    "public m1-demo-v1 model_slim.pt has no optimizer/scheduler state; "
+    "M4/AdamW parity cannot be claimed from the slim. The private "
+    "fixtures remain the only AdamW/grad oracle."
+))
+def test_m4_adamw_from_public_slim_is_not_claimed():
+    raise AssertionError("unreachable: slim cannot support M4")
+
+
 @_SKIP_REAL
 def test_public_slim_drives_a_forward_not_a_grad_oracle():
     """Load the slim into this GPT and run a short forward.
@@ -139,12 +207,17 @@ def test_public_slim_drives_a_forward_not_a_grad_oracle():
     model = gpt_from_slim(slim)
     assert sum(int(p.data.size) for p in model.parameters()) == PUBLISHED_PARAM_COUNT
     vocab = PUBLISHED_CONFIG["vocab_size"]
-    x = np.array([[1, 2, 3, 4]], dtype=np.int64)
-    logits = model(x)
-    assert logits.shape == (1, 4, vocab)
+    ref = np.load(LOGITS_FIXTURE)
+    logits = model(ref["input_x"][None, :])
+    assert logits.shape == (1, 16, vocab)
     assert np.isfinite(logits.data).all()
+    err = _relative_error(logits.data[0], ref["ref_logits"])
+    print(f"[public slim live] logits rel. error vs fixture PyTorch: {err:.6e}")
+    assert err < LOGITS_RTOL
+    assert err < LOGITS_CANARY
+    assert np.array_equal(logits.data[0].argmax(-1), ref["ref_logits"].argmax(-1))
     # Explicit: we do not backward against a published oracle. The slim
-    # has no g::* / ref_logits. Autograd on these weights would be this
+    # has no g::* tensors. Autograd on these weights would be this
     # engine talking to itself, not a proof.
     assert "ref_logits" not in slim
     assert not any(k.startswith("g::") for k in slim)

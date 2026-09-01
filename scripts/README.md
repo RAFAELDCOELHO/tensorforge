@@ -57,6 +57,7 @@ files (verified).
 | `gen_adamw_fixture.py` | `personacore_adamw.npz` (43 MB) | yes | `test_optim.py` |
 | `gen_clip_fixture.py` | `personacore_clip.npz` (24 MB) | yes | `test_optim.py` |
 | `gen_val_windows_fixture.py` | `val_windows.npz` (34 KB) | no | `demo_train.py` |
+| `gen_slim_logits_fixture.py` | `slim_logits_public.npz` (~1.9 MB, **committed**) | yes (public slim, not `best.pt`) | `test_public_slim.py` |
 
 - **parity** — the 101 tensors of the `state_dict` (float32, losslessly cast to
   float64 on read), a real 257-token window from `data/val.bin`, and the logits,
@@ -69,6 +70,17 @@ files (verified).
   where the norm is exactly equal to the limit.
 - **val_windows** — 16 windows spaced across the corpus, for the demonstration.
   `val.bin` is a plain `uint16` memmap, which NumPy reads without any torch.
+- **slim_logits_public** — 16-token forward from the *public* `m1-demo-v1`
+  slim only. PyTorch logits + this engine's logits, no grads, no AdamW.
+  Committed so a fresh clone can check the measurement. Not a substitute
+  for the private parity fixture.
+
+```bash
+# public slim only — never best.pt / val.bin
+export PERSONACORE_SLIM=/path/to/model_slim.pt
+export PERSONACORE_ROOT=/path/to/PersonaCore   # torch GPT lives here
+python scripts/gen_slim_logits_fixture.py
+```
 
 `_fixture_paths.py` is just the shared path helper — not an executable.
 
