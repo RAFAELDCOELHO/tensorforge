@@ -157,12 +157,38 @@ identical files. Details, ordering, and the environment lookup are in
 The trained checkpoint is private and is not in this repo. The `.npz`
 fixtures derived from it (~157 MB) are gitignored and were deliberately
 removed from git history. Without them the parity layer skips itself rather
-than failing: 428 passed, 21 skipped on a clean clone, via
-`pytest.mark.skipif` with a message naming the generator to run. With the
-fixtures present, all 449 run.
+than failing: 433 passed, 23 skipped on a clean clone, via
+`pytest.mark.skipif` with a message naming the generator to run (or, for
+the public slim, that `model_slim.pt` is absent and CI must not download
+it). With the private fixtures present, 454 run and the two real-slim
+tests still skip unless the 55 MB release asset is also local.
 
 Everything that does not need the checkpoint runs anywhere: the autograd
 engines, modules, optimizers, schedule, clipping, and their gradchecks.
+
+## What the public slim allows
+
+PersonaCore publishes one inference artifact: GitHub Release `m1-demo-v1`
+`model_slim.pt` (~55.6 MB). It is **not** in this repo and CI must not
+download it. The file was inspected on a fresh clone: SHA-256
+`dd3bbb8f772e0b9556a0a31d535a1673d55f0d61d6d669c58a9aab6bb6247e24`, keys
+exactly `{schema_version, model, model_config, git_sha, step, val_loss}`.
+
+The embedded config is this engine's GPT: vocab 8192, block 256, 6 layers,
+6 heads, 384 width, dropout 0.0, tied `wte`/`lm_head` (101 names, 100
+storages), 13,891,584 parameters, step 49000, git `3a46815…`. No optimizer,
+scheduler, RNG, train config, corpus window, or published PyTorch gradients
+travel with it.
+
+So a clone that also has the slim file can load those weights (torch-free zip
+unpickle in `scripts/slim_zip.py`) and run a **forward**. Backward against a
+published PyTorch grad oracle is **impossible** from this artifact — there is
+nothing to compare to. That is a limit of what was published, not a bug in
+the engine. Numerical forward/backward parity remains the private-fixture
+layer above (`fixtures/personacore_parity.npz`). Tests pin the architecture
+and schema on every clone; the real-file forward is `skipif`-gated with a
+loud reason when the slim is absent (`PERSONACORE_SLIM` or
+`checkpoints/model_slim.pt`).
 
 ## Running the tests
 

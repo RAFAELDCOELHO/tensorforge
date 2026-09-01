@@ -5,3 +5,7 @@ __pycache__/
 # Fixtures de paridade: ~157 MB, derivadas do checkpoint do PersonaCore.
 # Regeneráveis com scripts/gen_*_fixture.py — ver scripts/README.md.
 fixtures/*.npz
+
+# Public slim is a 55 MB GitHub Release asset. Never commit it; tests skip.
+checkpoints/
+*.pt
