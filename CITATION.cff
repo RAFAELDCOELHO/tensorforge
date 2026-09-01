@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using these metadata.
+type: software
+title: tensorforge
+authors:
+  - family-names: Coelho
+    given-names: Rafael D.
+    email: rafael.d.cooelho@gmail.com
+license: MIT
+repository-code: "https://github.com/RAFAELDCOELHO/tensorforge"
+url: "https://github.com/RAFAELDCOELHO/tensorforge"
+abstract: >-
+  From-scratch deep learning framework: scalar autograd, NumPy tensors,
+  Transformer primitives, and a full training loop. Retrained a real GPT
+  checkpoint; forward and backward match PyTorch.
+keywords:
+  - from-scratch
+  - deep learning
+  - autograd
+  - NumPy
+  - Transformer
+  - GPT
+  - gradient checking
+  - numerical parity
+  - PyTorch
+version: "1.0"
+date-released: 2026-07-28
