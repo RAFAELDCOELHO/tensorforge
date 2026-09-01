@@ -157,12 +157,45 @@ identical files. Details, ordering, and the environment lookup are in
 The trained checkpoint is private and is not in this repo. The `.npz`
 fixtures derived from it (~157 MB) are gitignored and were deliberately
 removed from git history. Without them the parity layer skips itself rather
-than failing: 428 passed, 21 skipped on a clean clone, via
-`pytest.mark.skipif` with a message naming the generator to run. With the
-fixtures present, all 449 run.
+than failing: 435 passed, 24 skipped on a clean clone, via
+`pytest.mark.skipif` with a message naming the generator to run (or, for
+the public slim, that `model_slim.pt` is absent and CI must not download
+it). One of those skips is honest: M4/AdamW is not claimed from the slim.
+With the private fixtures present, 456 run and the two real-slim
+tests still skip unless the 55 MB release asset is also local.
 
 Everything that does not need the checkpoint runs anywhere: the autograd
 engines, modules, optimizers, schedule, clipping, and their gradchecks.
+
+## What the public slim allows
+
+PersonaCore publishes one inference artifact: GitHub Release `m1-demo-v1`
+`model_slim.pt` (~55.6 MB). It is **not** in this repo and CI must not
+download it. The file was inspected on a fresh clone: SHA-256
+`dd3bbb8f772e0b9556a0a31d535a1673d55f0d61d6d669c58a9aab6bb6247e24`, keys
+exactly `{schema_version, model, model_config, git_sha, step, val_loss}`.
+
+The embedded config is this engine's GPT: vocab 8192, block 256, 6 layers,
+6 heads, 384 width, dropout 0.0, tied `wte`/`lm_head` (101 names, 100
+storages), 13,891,584 parameters, step 49000, git `3a46815…`. No optimizer,
+scheduler, RNG, train config, corpus window, or published PyTorch gradients
+travel with it.
+
+What the slim **does** allow is a public forward. `scripts/gen_slim_logits_fixture.py`
+loads the release asset once, runs PersonaCore's PyTorch GPT
+(`attn_impl=manual`, float64) and this engine on a documented 16-token
+input (`[8184, 1, …, 15]` — not private `val.bin`), and writes
+`fixtures/slim_logits_public.npz` (~1.9 MB). Measured relative error of
+the logits, same window, both sides float64: **2.123856e-15**. Argmax
+identical token for token. That file is committed; a fresh clone checks
+the measurement without downloading the 55 MB weights. Regenerating
+requires only the public slim and torch.
+
+Backward against a published PyTorch grad oracle, and M4/AdamW, are
+**impossible** from this artifact — no optimizer, no `g::*`, no corpus
+window. Those proofs stay on the private fixtures
+(`fixtures/personacore_parity.npz`). The suite records an explicit skip
+for M4-from-slim rather than inventing one.
 
 ## Running the tests
 

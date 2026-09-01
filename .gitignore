@@ -2,6 +2,11 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Fixtures de paridade: ~157 MB, derivadas do checkpoint do PersonaCore.
-# Regeneráveis com scripts/gen_*_fixture.py — ver scripts/README.md.
+# Private-checkpoint fixtures (~157 MB). The public slim logits fixture is
+# small and committed — see fixtures/slim_logits_public.npz.
 fixtures/*.npz
+!fixtures/slim_logits_public.npz
+
+# Public slim is a 55 MB GitHub Release asset. Never commit it; tests skip.
+checkpoints/
+*.pt
