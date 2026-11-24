@@ -208,3 +208,15 @@ python -m pytest tests/ -v
 trains on this engine in two regimes: overfitting a single batch, the classic
 gate that proves the engine learns, and a faithful continuation at the real
 schedule, which proves it runs in the real regime.
+
+## Use of AI tools (recorded 2026-11-24)
+
+In the one surviving development session, Claude Code (Anthropic) wrote `core/tensor.py`,
+`core/nn.py`, `core/optim.py`, `core/train.py` and their tests, and found and fixed the `set` bug;
+who produced the first scalar engine, `core/engine.py`, is not recorded, and the author reports that
+he typed none of the code (his statement, 2026-11-24). The author required
+byte-for-byte equality for `train_step`, which exposed the bug, and had the fix extended to
+`core/engine.py` and recorded here. A Cursor agent made 4 commits. The history was rewritten on
+2026-07-28 to drop the private fixtures, so the commits do not show the development. Whoever wrote
+a line, the parity tests check this engine against a checkpoint it did not produce. Claude Code
+drafted this text; the full account, with sources, is in [`docs/AI_USE.md`](docs/AI_USE.md).
