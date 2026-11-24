@@ -347,8 +347,9 @@ def test_repeated_steps_on_one_batch_drive_the_loss_down():
 # retreinar aquele modelo aqui. Um gradiente não-determinístico torna qualquer
 # reprodutibilidade a nível de bit impossível. _prev virou tupla.
 #
-# (core/engine.py, o Value escalar do M0, tem o mesmo padrão. Ficou como está:
-# não participa do caminho de treino.)
+# (core/engine.py, o Value escalar do M0, tinha o mesmo padrão e recebeu o
+# mesmo conserto, core/engine.py:16-22, embora não participe do caminho de
+# treino.)
 
 def test_the_same_step_twice_gives_bit_identical_weights():
     """Determinismo entre execuções dentro do mesmo processo."""

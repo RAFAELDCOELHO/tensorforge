@@ -2,8 +2,8 @@
 Paridade contra o PersonaCore treinado — o primeiro teste que não é auto-referente.
 
 Todo teste até aqui comparou o tensorforge contra uma referência que eu mesmo
-escrevi em NumPy, ou contra literais gerados op a op. Este carrega os 10.6M
-pesos de um GPT REAL, treinado por 49k passos, roda uma janela REAL do corpus,
+escrevi em NumPy, ou contra literais gerados op a op. Este carrega os
+13.891.584 pesos de um GPT REAL, treinado por 49k passos, roda uma janela REAL do corpus,
 e compara logits, loss e gradientes contra o que o PyTorch produz com os mesmos
 números. Um erro de arquitetura que passasse por todos os gradchecks — heads
 trocados, residual faltando, ordem de norm errada — aparece aqui como
@@ -76,8 +76,10 @@ ponto flutuante não é associativa, e as duas implementações somam os produto
 internos em ordens diferentes (BLAS com blocagem e acumulação por painéis vs o
 matmul do NumPy). Mesmos números, mesma matemática, ordens diferentes.
 
-O erro de um produto interno de comprimento K com soma em pares é ~sqrt(K)·eps
-relativo (eps = 2.22e-16); com soma sequencial seria K·eps. Por bloco há ~7
+O erro típico de um produto interno de comprimento K somado em sequência é
+~sqrt(K)·eps relativo (eps = 2.22e-16), quando os arredondamentos se cancelam
+ao acaso; o pior caso seria K·eps, e somando em pares ~log2(K)·eps. A conta
+abaixo usa sqrt(K)·eps como estimativa por contração. Por bloco há ~7
 contrações em série: q/k/v (K=384), os scores (K=64), attn@v (K=256), c_proj
 (K=384), fc_in (K=384), fc_out (K=1536) — média de sqrt(K) na casa de 25. São
 ~7 contrações × 25 ≈ 175 eps por bloco. Seis blocos mais o lm_head (K=384,

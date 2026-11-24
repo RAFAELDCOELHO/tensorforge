@@ -2,8 +2,11 @@
 
 A deep learning framework written from scratch: scalar autograd, NumPy
 tensors, Transformer primitives, and a full training loop. The final proof is
-specific. A real, already-trained GPT checkpoint was retrained on this engine,
-and the numbers match PyTorch's, forward and backward. This is not a tutorial
+specific. A real, already-trained GPT checkpoint was loaded into this engine,
+and the pieces of one training step from it match PyTorch's numbers: logits,
+loss, sampled gradients, gradient clipping, and one AdamW step from the
+checkpoint's optimizer state. The training trajectory is not reproduced (see
+the paragraph after the parity table). This is not a tutorial
 reimplementation validated against itself.
 
 ## Why
