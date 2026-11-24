@@ -216,7 +216,7 @@ Each statement names the record that supports it. Claude Code drafted this secti
 from the records it cites.
 
 `AUTHORSHIP.md` means `docs/AUTHORSHIP.md` on the branch `docs/authorship` of the PersonaCore
-repository (commit `866dc2b`). Its §4.4 reconstructs this repository's one surviving session.
+repository (commit `86cda17`). Its §4.4 reconstructs this repository's one surviving session.
 
 - **What the git history does not show.**
   - The history was rewritten on 2026-07-28 to remove the private fixtures ("Reproduction limits"
