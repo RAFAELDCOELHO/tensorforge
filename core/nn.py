@@ -17,8 +17,11 @@ from core.tensor import Tensor
 # make that -inf - (-inf) = nan, which then spreads through the whole batch in
 # the backward. Causal masking never produces a fully masked row (the diagonal
 # is always allowed), but a padding mask does. -1e9 underflows to exactly 0
-# after exp, so it is numerically identical here, and degrades to a uniform
-# row instead of a nan in the case that will show up later.
+# after exp, so it is numerically identical here. In a fully masked row it
+# keeps the softmax finite instead of nan, but it does NOT make the row
+# uniform: the same constant added to every entry cancels in the softmax, so
+# the row comes out as the softmax of its unmasked scores (to within the
+# ~1e-7 rounding of adding 1e9). It is uniform only if those scores are equal.
 MASKED = -1e9
 
 
