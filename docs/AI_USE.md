@@ -19,6 +19,8 @@ repository (commit `86cda17`). Its §4.4 reconstructs this repository's one surv
     does not say whether a person or a model wrote a line.
   - Who produced the first version of `core/engine.py`, the scalar engine, is not recoverable from
     any artifact (`AUTHORSHIP.md` §9, item 3, lines 480–486).
+  - The author reports that he typed none of the code in this repository (his answer of
+    2026-11-24 to the orchestrating session, "Não digitei nada"). No artifact contradicts or proves it.
 - **What the surviving session record shows.** One Claude Code (Anthropic) session from 2026-07-28
   survives as a private copy on the author's machine and is not published. `AUTHORSHIP.md` §4.4
   reconstructs it (lines 269–270 and 278–293).

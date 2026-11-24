@@ -213,7 +213,8 @@ schedule, which proves it runs in the real regime.
 
 In the one surviving development session, Claude Code (Anthropic) wrote `core/tensor.py`,
 `core/nn.py`, `core/optim.py`, `core/train.py` and their tests, and found and fixed the `set` bug;
-who produced the first scalar engine, `core/engine.py`, is not recorded. The author required
+who produced the first scalar engine, `core/engine.py`, is not recorded, and the author reports that
+he typed none of the code (his statement, 2026-11-24). The author required
 byte-for-byte equality for `train_step`, which exposed the bug, and had the fix extended to
 `core/engine.py` and recorded here. A Cursor agent made 4 commits. The history was rewritten on
 2026-07-28 to drop the private fixtures, so the commits do not show the development. Whoever wrote
